@@ -1,62 +1,23 @@
-# Screen Orientation Bug
+# Solution
 
-Running this project's `main` branch demonstrates that screen orientation updates in Expo Go, but not an EAS build.
-
-See the `solution` branch for a partial solution.
-
-## Run in Expo Go
-
-```bash
-npx expo start --ios
-```
-
-The app will respond to screen rotation. Good!
-![Good rotation in landscape orientation](docs/ios-good-landscape.png)
-
-## Run EAS Build
-
-```bash
-npx expo run:ios
-```
-The app will **NOT** respond to screen rotation. Bad!
-
-![Bad rotation in landscape orientation](docs/ios-bad-landscape.png)
-
-## Notes
-
-This test was created with these commands.
-
-```bash
-npx create-expo-app@latest
-npx expo install expo-screen-orientation
-```
-
-It includes this chunk of [documented configuration](https://docs.expo.dev/versions/latest/sdk/screen-orientation/#example-appjson-with-config-plugin)
-in `app.json`:
+Adding this [documented manual configuration](https://github.com/expo/expo/tree/sdk-48/packages/expo-screen-orientation#configure-for-ios)
+to `Info.plist` fixes the problem seen in the EAS Build.
 
 ```
-{
-  "expo": {
-    "ios": {
-      "requireFullScreen": true
-    },
-    "plugins": [
-      [
-        "expo-screen-orientation",
-        {
-          "initialOrientation": "DEFAULT"
-        }
-      ]
-    ]
-  }
-}
-
+<key>EXDefaultScreenOrientationMask</key>
+<string>UIInterfaceOrientationMaskAllButUpsideDown</string>
 ```
 
-The line `"orientation": "portrait"` has been changed to `"orientation": "default"` in `app.json`.
+However, having to manually add this configuration seems counter to the [prebuild strategy of using configuration plugins](https://docs.expo.dev/workflow/prebuild/#usage).
 
-Lastly, prebuild was performed.
+> This creates the android and ios directories for running your React code. If you modify the generated directories
+> manually then you risk losing your changes the next time you run npx expo prebuild --clean. Instead, you should create
+> config plugins — functions that perform modifications on native projects during prebuild.
 
-```bash
-npx expo prebuild --platform ios
-```
+This is especially problematic if you follow the [advice of adding `ios` and `android` to `.gitignore`](https://docs.expo.dev/workflow/prebuild/#clean).
+
+> The purpose of the prompt is to encourage managed workflow users to
+> `add the android and ios directories to the project's .gitignore`,
+> ensuring that the project is always managed. However, this can make
+> custom config plugins harder to develop so we  haven't introduced any
+> mechanism to enforce this behavior.
